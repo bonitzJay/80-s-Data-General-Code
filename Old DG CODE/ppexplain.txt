@@ -1,0 +1,13 @@
+READ_ME.....
+
+routine PPKEY finds the last INFOS key used.  The HEXTODISK routine
+puts the information on the disk.
+
+NOTE*******
+        07/27/89   ---- The symbol ?PVERVS in the latest version
+of PARAU32.SR has the value 000011.  The current revision of COBOL
+(unless I'm missing something) generates REVISION 000010 parameter
+packets. I changed PPKEY.SR to reflect this.  It handles Rev 10 or
+Rev 11 packets.
+
+

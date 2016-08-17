@@ -1,0 +1,163 @@
+	.TITLE	PPKEY
+	.ENT	PPKEY
+;++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+; This routine uses the INFOS parameters in PARAU32.SR
+;	X/S MASM%0/%/L=%1%.LS/O=%1% PARAU32.SR/PASS1  %-%
+;PPTR is found in module COBREAD in a COBOL program.
+;It contains an address to the last INFOS processing packet used.
+	.EXTL	PPTR
+;PURPOSE:  Track down the keys used in the last INFOS call and move
+; them to a common area within the COBOL program.  This area can then
+; be written out to disk.
+;-------- ANDERSON -----------87/10/13
+;CALLING SEQUENCE:
+;  CALL "PPKEY" USING COMMON-AREA.
+;++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+	.NREL	0	; UNSHARED
+
+; PARAMETER TABLE
+
+CA = -12.               ;BP to common area
+         		;01 COMMON-AREA.
+			;  05  ALINE PIC X(80) OCCURS 6.
+
+;CONST
+AC0 = 0
+AC1 = 1
+AC2 = 2
+AC3 = 3
+MXKYS = 6.		;Maximum key packets.. Set by COBOL routine
+MXKLN = 79.		;Maximum key length set by COBOL routine
+			;Declare storage for 1 byte more.
+;==================================================================
+;07/28/89 -- The packet identifiers in PARAU32.SR changed to Rev 11
+; while COBOL packets did not. (I think).  The value of ?PPVS is
+; now 4703 instead of 4303.  This is caused by ?PVERVS. Check for
+; both.
+;==================================================================
+?PVS10 = 4303		;Packet identifier Rev 10
+?PVS11 = 4303		;Packet identifier Rev 11
+;==================================================================
+;VARS
+SAPACK: .DWORD	0       	;Save packet address
+NOKEYS: .DWORD	0       	;Save number of keys
+SACA  : .DWORD  0       	;Save BP to comman area
+	.NREL	1		; Shared code
+
+PPKEY:	WSAVS	0		;Save all
+	LWLDA	AC2,CA,AC3	;Get BP to common area
+	LWSTA	AC2,SACA	;Save for later
+	LWLDA	AC2,PPTR	;Get processing packet address
+	WSEQ	AC2,AC2		;Is it zero?
+	WBR	CONIN1		;No
+	WBR	DONE		;Yes
+CONIN1:
+	LNLDA	AC1,?TYPE.W,AC2 ;Get the packet type
+	WSNEI	?PVS10,AC1	;Is it a processing packet? Rev 10
+	WBR	PROK		;Yes
+	WSNEI	?PVS11,AC1	;Is it a processing packet? Rev 11
+	WBR	PROK		;Yes
+	WBR	DONE		;No
+PROK:
+	WLSHI	1,AC2		;Get a BP to packet
+	WADDI	?PKPN.B,AC2	;Get BP to number of key packets
+	WLDB	AC2,AC0		;Get the actual number
+	WSGTI	MXKYS,AC0	;Is the number > max
+	WBR	GTMXK		;No
+	NLDAI	MXKYS,AC0	;Yes..Make it the max
+GTMXK:
+	LWSTA	AC0,NOKEYS	;Save it
+;Get the PP address back again
+	LWLDA	AC2,PPTR	;Got it
+	WADDI	?PPVS.L,AC2	;Packets are contiguous..go to first
+	NLDAI	?KDPVS.L,AC0	;Get value of key packet length
+	WSUB	AC0,AC2		;Prepare for loop (- packet length)
+	LWSTA	AC2,SAPACK      ;Save this
+LOOP:			        ;Loop for all key packets
+	LWLDA	AC2,SAPACK	;Get the current packet
+	WADDI	?KDPVS.L,AC2	;Point to next
+	LWSTA	AC2,SAPACK	;Save for next time through
+	LWLDA	AC3,?KKYP.D,AC2	;Get BP to key
+	WLSHI	1,AC2		;Get a BP
+	WADDI	?KYLN.B,AC2	; to the key length
+	WLDB	AC2,AC0		;Get the length
+;If zero length key I'm finished
+	WSEQ	AC0,AC0		;Is it?
+	WBR	CONTIN		;No..Continue
+	WBR	DONE		;Yes..Done
+CONTIN:
+;Is the length too long to handle?
+	WSGTI	MXKLN,AC0	;Is it?
+	WBR	GTMXL		;No
+	NLDAI	MXKLN,AC0	;Yes..Make it the max
+GTMXL:
+	WMOV	AC0,AC1		;Ditto 0 -> 1
+	LWLDA	AC2,SACA	;BP from COBOL
+	WSTB	AC2,AC0		;Save length as first byte of key
+	WINC	AC2,AC2		;Point past
+	WCMV			;Move key to common
+;Set for next
+	LWLDA	AC2,SACA	;Get it
+	WADDI	MXKLN+1,AC2	;Bump to next
+	LWSTA	AC2,SACA	;Put it back
+	LWDSZ	NOKEYS		;Skip on no more keys
+	WBR	LOOP	        ;Loop it
+
+DONE:	
+	LDAFP	AC3		;Restore Frame
+	WRTN       		;Return to COBOL
+	.END
+;This is the very last line.
++—¥—
+COBOL_SOURCE
+
+HEXTODISK&
++—¦	GPRNM.SR
+
+; THIS IS AN ASSEMBLY LANGUAGE PROGRAM CALLABLE FROM
+; A COBOL PROGRAM.  IT IS USED TO GET EXECUTING .PR FOR A PID
+;
+;  CALL "GPRNM" USING <PID> <PR NAME> <ERROR-WORD>
+;
+;	THE <PID> IS 9(9) COMP.
+;	THE <PR NAME> IS 256 BYTES
+;	THE <ERROR-WORD> IS A 4 BYTE UNSIGNED BINARY NUMBER
+;		-  IN COBOL IT IS PIC 9(9) COMP
+;
+	.TITLE	GPRNM
+	.ENT	GPRNM
+
+	AC0=0
+	AC1=1
+	AC2=2
+	AC3=3
+
+	.NREL	0		; UNSHARED CODE
+
+
+.PIDN =-12.		; BECOMES BYTE ADDRESS OF PID
+.PRNA =-14.		; BECOMES BYTE POINTER OF ACL
+ER =-16.		; BECOMES BYTE ADDRESS OF ERROR STATUS WORD
+
+	.NREL	1		; SHARED CODE
+
+GPRNM:	WSAVS	0		;SAVE ALL
+
+PORC:	LDAFP	AC3		;RESTORE FRAME PONTER
+	LWLDA	AC2,.PIDN,AC3	;BP TO PID NUMBER
+	WASHI	-1,AC2		; SHIFT TO WORD
+	LWLDA	AC0,0,AC2	; GET PID NUMBER
+	WSUB 	AC1,AC1		; MAKE IT ZERO
+	LWLDA	AC2,.PRNA,AC3	; GET BP FROM COBOL TO PR NAME BUFFER
+	?GPRNM
+	WBR	ERETN
+
+DONE:	WSUB  	AC0,AC0		; SET ZERO STATUS
+ERETN:	LDAFP	AC3
+	LWLDA	AC2,ER,AC3	; GET ERROR STATUS ADDRESS
+	WLSHI   -1,AC2
+	LWSTA	AC0,0,AC2
+	WRTN
+
+	.END

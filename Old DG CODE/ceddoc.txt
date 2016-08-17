@@ -1,0 +1,99 @@
+CED.DOC
+
+down.  The movement commands work but the
+text is readonly.  This was displayed with
+the readonly switch. Notice a different part
+of the screen is being used.  CED is meant
+to integrate with existing programs.
+
+PRESS F3 TO SCROLL OR
+  Press F8 or ESC to continue demo.
+
+         FUNCTION KEYS
+
+F2 - Page up
+F3 - Page down
+F6 - Continue search backward
+     after a SB or SF command.
+F7 -  Continue search forward
+     after a SB or SF command
+F8 - Exit Program.
+          COMMANDS
+
+
+Commands are typed over  the line
+numbers.   The Arrow, Newline and
+Function keys  are  used  to move
+through the line numbers.
+
+       9999 - Go to line 9999
+         LO -  Load a file
+         SA -  Save a file
+         RP - Repaint
+         AP - Append
+         IN - Insert
+         MO - Modify
+         DE - Delete
+         AF - After
+         BE - Before
+         SF - Search Forward
+         SB - Search Backward
+         ST - Set tabs
+         FA - File after
+         FB - File before
+
+       BLOCK COMMANDS
+
+
+
+Block    commands   require   two
+entries. They  are  used  to mark
+the  beginning  and  the end of a
+block of lines.
+         DB - Delete a block
+         CB - Copy a block
+         CF - Copy to a file
+
+      GENERAL NOTES
+
+
+1. Freshly deleted or copied text
+can  be  inserted  at  a
+
+using the AF or BE commands.
+2. While in Modify mode you  can
+use the  F5 key to split a line.
+Move the cursor to the point  in
+a line  where a split should
+occur.  Press the F5 key.
+3. The  DE (delete)  command is a
+special case.   DE entered alone
+deletes 1 line. nnDE, where nn is
+a number  from 1 to 99, deletes 1
+to  99  lines  beginning  at  the
+current line.
+4.  To replicate lines:
+        a. Use CB (copy block) to
+           copy lines of text.
+        b. Use AF (after)  or BE
+           (before) to insert the
+           new text.
+    To move lines:
+        a. Use  DB (delete block)
+           or DE to remove lines.
+        b. Use  AF (after) or BE
+            (before) to re-insert
+            the
+
+
+WARNING...WARNING...WARNING
+
+The delete  and copy commands use
+the same save area;  therefore,
+use  AF  (after)  and BE (before)
+with  that   text  until  another
+delete/copy  command.    To save
+lines of text, use the CF  (copy
+to file)  command.   Use FA (file
+after) and  FB  (file  before) to
+insert the saved text as needed.

@@ -1,0 +1,4 @@
+MASM.CLI
+
+X/S MASM%0/%/L=%1%.LS/O=%1% PARAU32.SR/PASS1 %-%
+WR [!STRING]

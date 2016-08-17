@@ -1,0 +1,235 @@
+
+
+                         COMEX DOCUMENTATION
+
+			CObol  Macro  EXpander
+
+
+
+OVERVIEW
+
+COMEX is a macro expander in the traditional sense of the
+
+word.  Macros are defined using the macro language of COMEX.
+
+These macros can then be called to generate text.  Features
+
+of COMEX include simple substitution, selective text generation,
+
+recursion, label generation and nested calls.
+
+
+
+USE
+
+
+
+The macro definition language of COMEX consists of
+
+COBOL-like sentences that must begin in column 1.  Each must
+
+start with the tilde (~)  character.
+
+
+SYNTAX
+ 
+---------------------------------------------------------------------
+
+~IF
+
+
+
+FORM I
+		-      -
+	~IF 	| NRG  |                      [lit]
+		| VRn  |	-     -
+		-      -        | LE  |       -     -   label
+				| GE  |       |&NRG&|
+				| NE  |	      |&VRn&|
+				| LT  |       -     -
+				| GT  |
+				| EQ  |
+				-     -
+
+
+FORM II
+
+	~IF [NOT] MCALL label
+
+--------------------------------------------------------------------
+
+
+
+~GO
+
+
+
+
+	~GO label
+
+
+
+There can be a maximum of 10 labels per macro.
+
+--------------------------------------------------------------------
+
+
+~ADD ~SUB ~SET
+
+
+_      _        _      _      _      _
+| ~ADD |        | VRn  |      | lit  |
+| ~SUB |	-      -      |&ARG& |
+| ~SET |		      |&NRG& |
+-      -                      -      -
+
+--------------------------------------------------------------------
+
+
+MACRO FORM
+
+
+	^MACRO
+	name &dum1& &dum2& ... &dumn&
+	body
+	%
+
+
+
+				MACRO CALL
+
+	
+	^name arg1 arg2 ... arg3
+
+
+
+
+
+NOTES AND RESTRICTIONS
+
+
+Macro calls with all associated arguments can not extend beyond
+
+the newline character.  This gives 255 characters for the calls.
+
+"!", "^", "%", "&", and "~" are reserved for use by COMEX.
+
+All variables are predefined.  They are VR0, VR1, VR2, VR3,
+
+VR4, VR5, VR6, VR7, VR8, VR9 AND NRG.  They are picture 999
+
+COBOL variables.
+
+
+&NRG& expands to the number of arguments for the call.
+
+MCALL is a switch.  It is true the first time a macro is 
+
+invoked, false at all other times.
+
+
+Quotes may be used to send text to a dummy argument.  Please
+
+note that single quote and double quote are not interchangeable.
+
+To send an imbedded quote use the opposite type to surround the
+
+text.
+
+
+Macros can be called by position or called by value. 
+
+	Example:
+	
+	^MACRO
+	GEN &ARG1& &ARG2&
+	THE &ARG1& &ARG2& COMPUTER ATE MY PROGRAM.
+	%
+
+	Call by position:
+	
+	^GEN LOVING WARM
+
+	Produces:
+		
+	THE LOVING WARM COMPUTER ATE MY PROGRAM.
+
+	Call by value:
+
+	^GEN &ARG1&=WARM &ARG2&=LOVING
+
+	Produces:
+
+	THE WARM LOVING COMPUTER ATE MY PROGRAM.
+
+	^GEN &ARG2&=BAD
+
+	Produces:
+
+	THE BAD COMPUTER ATE MY PROGRAM.
+
+
+HOW TO
+
+Be patient when trying to write macros!
+
+Be aware that uncontrolled looping is an ever present danger.
+
+If the results aren"t what you expected, go over the syntax
+ 
+again very carefully.  Try doing the macro in parts and put
+
+in traces to determine what is happening.  Use the demos as
+
+examples of form.
+
+DEMOS
+
+Run the demonstration files in the COMEX directory.  They
+
+are DEMOFILE1-N.CMF.  Each gives a simple example of how COMEX
+
+works.  When you've mastered the basics.  Study the
+
+TRANSMOGRIFY model programs.
+
+
+WHAT IS TRANSMOGRIFY
+
+Transmogrify can produce  file maintenance and report programs
+
+from its two model programs.  The syntax and the programs produced
+
+are very rigid.  The INFOS file must be a two level DBAM.
+
+Although a lot of assumptions are made, TRANSMOGRIFY is
+
+an impressive demonstration of what COMEX can do!  I suggest
+
+running the samples included exactly as they are to understand
+
+what is happening.  Afterwards, copy the sample.tsf files as a
+
+starting point for your own creations.  There are also sample
+
+.fd, sl and ws files included.  TRANSMOGRIFY expects this format.
+
+Once you've mastered COMEX you will want to customize TRANSMOGRIFY
+
+to suit your own standards and practices.
+
+******************************
+*  NOTE **********************
+******************************
+
+The error routine used in the MODEL programs is somewhat unique.
+
+The HEXTODISK and PPKEY subroutines provide a very good programmer
+
+audit trail in the event of an error.  The last keys used in an
+
+INFOS IO are written to disk.  This is based on a COBOL variable
+
+that is coded as EXTERNAL to PPKEY.  This variable could change in
+
+later versions of the compiler.  It works for 3.10 and 3.20.

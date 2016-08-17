@@ -1,0 +1,30 @@
+.TITLE IRTN
+	.ENT   IRTN
+	AC0=0
+	AC1=1
+	AC2=2
+	AC3=3
+	.NREL 1
+;********************************************************
+;Return to system with error code in AC0
+;********************************************************
+.ERW = -12.				;Error word bp
+.ERWL = 6B10.+3.			;CIS 9(9) COMP
+
+IRTN:	WSAVS	0			;Save the world
+	LWLDA	AC2,.ERW,AC3		;Get bp to error
+	WLSHI	-1,AC2			;Addr
+	LWLDA	AC0,0,AC2		;AC0 <- error
+	WSEQ	AC0,AC0			;Is it zero
+	WBR	IRTY
+     	NLDAI	?RFAB+?RFER,AC2		;error flag
+	WBR	IRTR
+IRTY:
+        NLDAI   ?RFEC+?RFCF+?RFER,AC2  	; error flags
+IRTR:
+        ?RETURN                 	; to CLI.
+        WBR     IRTY            	; return error
+
+	WRTN
+
+;The end
